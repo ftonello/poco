@@ -1,0 +1,58 @@
+POCO - POrtable COmpositor
+
+Introduction
+============
+
+The goal of this project is to provide one composite window manager that is portable through
+multiple window protocols and focused for Embedded Linux.
+
+These multiple window protocols are namelly Wayland and X11. But the abstraction should make
+it possible to write for different window protocols.
+
+Motivations
+===========
+
+All current Window Managers available are super tight with their DE, big code base, hard to
+maintain, not portable to different platforms and window protocols.
+
+Usually all major embedded project that needs to develop their own shell and DE are forced
+to write their own Window Manager as well. We want to avoid this.
+
+Design
+======
+
+The design is inspired by the driver framework model in the Linux kernel. Basically platform
+specific source codes, such as machine and board, can set platformdata structes that contains
+the actual platform specific code, such as IRQ numbers, GPIO numbers, function callbacks to
+perform various things.
+
+We should be able to provide an abstraction model to provide this flexible approach. A way
+that a user of the window manager can set their preferences in terms of effects, decorations,
+behavior, etc. The idea is to make the window manager really fast and simple, so most of the
+configuration would be in compile time.
+
+Our focus is Embedded Linux. With this in mind we can set a smaller and specific use cases for
+poco. Which will make code simpler, faster and smaller.
+
+Implementation
+==============
+
+Probably use C since it's small and fast and XCB and Wayland are using C as well.
+
+Start implementation without any other library dependency. Add dependency only if necessary.
+Try as possible not to be dependent on big libraries, but if necessary use GLib.
+
+Window Protocols
+================
+
+Focus in supporting Wayland and X11 for Embedded Linux.
+
+This will make our life simpler in terms of supporting ICCCM and EWMH. Just implement standards
+that are required for our use cases.
+
+Use Cases
+=========
+
+Make sure we support Qt4 and Qt5, Gtk and EFL. That's probably will cover most cases.
+
+TODO: continue to write about it....
