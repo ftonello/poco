@@ -4,13 +4,15 @@
 
 int main(int argc, char *argv[])
 {
-	__poco_load_platformdata();
+	struct poco_ws *ws;
 
-	__poco_ws_init();
+	__poco_ws_init(ws);
 
-	__poco_event_loop();
+	__poco_load_platformdata(ws);
 
-	__poco_ws_cleanup();
+	__poco_event_loop(ws);
+
+	__poco_ws_cleanup(ws);
 
 	return 0;
 }
