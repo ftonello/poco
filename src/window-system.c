@@ -1,11 +1,12 @@
 #include "window-system.h"
 
+#include <malloc.h>
 #include <assert.h>
 
 struct poco_ws * __poco_ws_new()
 {
-	poco_ws *ws;
-	if (!(ws = malloc(sizeof(struct poco_ws))))
+	struct poco_ws *ws;
+	if (!(ws = calloc(1, sizeof(struct poco_ws))))
 		return NULL;
 	return ws;
 }

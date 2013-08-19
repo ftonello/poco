@@ -16,4 +16,9 @@ struct poco_xcb {
 	xcb_window_t us; /* Window Manager window id */
 };
 
+struct poco_xcb_window {
+	xcb_window_t window;
+	/* to be continued ... */
+};
+
 #endif /* _XCB_H_ */

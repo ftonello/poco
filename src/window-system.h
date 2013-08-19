@@ -1,6 +1,12 @@
 #ifndef _WINDOW_SYSTEM_H_
 #define _WINDOW_SYSTEM_H_
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#else
+#error "You should run ./autogen script before."
+#endif
+
 #ifdef POCO_WS_X
 #include "window-systems/x/xcb.h"
 #elif POCO_WS_WAYLAND
@@ -10,15 +16,25 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-struct poco_screen {
+struct poco_geometry {
+	uint32_t x; /* in pixels */
+	uint32_t y; /* in pixels */
 	uint32_t width; /* in pixels */
 	uint32_t height; /* in pixels */
 };
 
 struct poco_ws {
-	struct void *platformdata;
-	struct poco_screen screen;
-	bool (*event_loop)(struct poco_ws *);
+	/* xcb or wayland */
+	void *platformdata;
+	struct poco_geometry screen;
+	void (*event_loop)(struct poco_ws *);
+};
+
+struct poco_window {
+	struct poco_geometry geo;
+	void *platformdata;
+	bool (*minimize)();
+	bool (*unminimize)();
 };
 
 struct poco_ws * __poco_ws_new();
