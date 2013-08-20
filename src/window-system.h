@@ -7,12 +7,6 @@
 #error "You should run ./autogen script before."
 #endif
 
-#ifdef POCO_WS_X
-#include "window-systems/x/xcb.h"
-#elif POCO_WS_WAYLAND
-#include "window-systems/wayland/wayland.h"
-#endif
-
 #include <stdint.h>
 #include <stdbool.h>
 
