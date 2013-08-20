@@ -1,4 +1,4 @@
-AC_INIT([poco], [0.1], [eu@felipetonello.com], [poco], [http://felipetonello.com/])
+AC_INIT([PoCo], [0.1], [eu@felipetonello.com], [poco], [http://felipetonello.com/])
 AC_PREREQ([2.63])
 AM_INIT_AUTOMAKE([1.11 -Wall -Wno-portability no-define])
 

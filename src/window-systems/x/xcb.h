@@ -11,7 +11,6 @@ struct poco_xcb {
 	xcb_ewmh_connection_t *ewmh;
 	int screen;
 	xcb_window_t root;
-	int default_screen;
 	uint8_t root_depth;
 	xcb_window_t us; /* Window Manager window id */
 };

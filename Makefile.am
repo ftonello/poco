@@ -4,6 +4,7 @@ ACLOCAL_AMFLAGS = ${ACLOCAL_FLAGS}
 bin_PROGRAMS = poco
 poco_SOURCES = \
 	src/main.c \
+	src/utils.h \
 	src/event-loop.c \
 	src/event-loop.h \
 	src/platformdata.c \

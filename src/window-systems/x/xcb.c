@@ -1,5 +1,6 @@
 #include "window-systems/x/xcb.h"
 #include "window-system.h"
+#include "utils.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -20,107 +21,105 @@ inline void set_platformdata(struct poco_ws *ws, struct poco_xcb *xcb)
 	ws->platformdata = (void *)xcb;
 }
 
-void create_notify(xcb_create_notify_event_t *evt)
+static void create_notify(xcb_create_notify_event_t *evt)
 {
-	printf("CreateNotify handled.\n");
+	poco_log_debug("CreateNotify handled.\n");
 }
 
-void destroy_notify(xcb_destroy_notify_event_t *evt)
+static void destroy_notify(xcb_destroy_notify_event_t *evt)
 {
-	printf("DestroyNotify handled.\n");
+	poco_log_debug("DestroyNotify handled.\n");
 }
 
-void map_request(xcb_map_request_event_t *evt)
+static void map_request(xcb_map_request_event_t *evt)
 {
-	printf("MapRequest handled.\n");
+	poco_log_debug("MapRequest handled.\n");
 }
 
-void map_notify(xcb_map_notify_event_t *evt)
+static void map_notify(xcb_map_notify_event_t *evt)
 {
-	printf("MapNotify handled.\n");
+	poco_log_debug("MapNotify handled.\n");
 }
 
-void unmap_notify(xcb_unmap_notify_event_t *evt)
+static void unmap_notify(xcb_unmap_notify_event_t *evt)
 {
-	printf("UnmapNotify handled.\n");
+	poco_log_debug("UnmapNotify handled.\n");
 }
 
-void event_loop(struct poco_ws *ws)
+static void event_loop(struct poco_ws *ws)
 {
 	struct poco_xcb *xcb = get_platformdata(ws);
 	xcb_generic_event_t *event;
 
-	while (event = xcb_poll_for_event(xcb->conn)) {
-		uint8_t resp_type = XCB_EVENT_RESPONSE_TYPE(event);
-		switch (resp_type) {
-		case XCB_CREATE_NOTIFY:
-			create_notify((xcb_create_notify_event_t *)event);
-			break;
-		case XCB_DESTROY_NOTIFY:
-			destroy_notify((xcb_destroy_notify_event_t *)event);
-			break;
-		case XCB_MAP_REQUEST:
-			map_request((xcb_map_request_event_t *)event);
-			break;
-		case XCB_MAP_NOTIFY:
-			map_notify((xcb_map_notify_event_t *)event);
-			break;
-		case XCB_UNMAP_NOTIFY:
-			unmap_notify((xcb_unmap_notify_event_t *)event);
-			break;
-		/* case XCB_CLIENT_MESSAGE: */
-		/* 	client_message(event); */
-		/* 	break; */
-		/* case XCB_CONFIGURE_REQUEST: */
-		/* 	configure_request(event); */
-		/* 	break; */
-		/* case XCB_PROPERTY_NOTIFY: */
-		/* 	property_notify(event); */
-		/* 	break; */
-		/* case XCB_ENTER_NOTIFY: */
-		/* 	enter_notify(event); */
-		/* 	break; */
-		/* case XCB_MOTION_NOTIFY: */
-		/* 	motion_notify(event); */
-		/* 	break; */
-		/* case XCB_FOCUS_IN: */
-		/* 	focus_in(event); */
-		/* 	break; */
+	while (true) {
+		if (event = xcb_poll_for_event(xcb->conn)) {
+			uint8_t resp_type = XCB_EVENT_RESPONSE_TYPE(event);
+			switch (resp_type) {
+			case XCB_CREATE_NOTIFY:
+				create_notify((xcb_create_notify_event_t *)event);
+				break;
+			case XCB_DESTROY_NOTIFY:
+				destroy_notify((xcb_destroy_notify_event_t *)event);
+				break;
+			case XCB_MAP_REQUEST:
+				map_request((xcb_map_request_event_t *)event);
+				break;
+			case XCB_MAP_NOTIFY:
+				map_notify((xcb_map_notify_event_t *)event);
+				break;
+			case XCB_UNMAP_NOTIFY:
+				unmap_notify((xcb_unmap_notify_event_t *)event);
+				break;
+				/* case XCB_CLIENT_MESSAGE: */
+				/* 	client_message(event); */
+				/* 	break; */
+				/* case XCB_CONFIGURE_REQUEST: */
+				/* 	configure_request(event); */
+				/* 	break; */
+				/* case XCB_PROPERTY_NOTIFY: */
+				/* 	property_notify(event); */
+				/* 	break; */
+				/* case XCB_ENTER_NOTIFY: */
+				/* 	enter_notify(event); */
+				/* 	break; */
+				/* case XCB_MOTION_NOTIFY: */
+				/* 	motion_notify(event); */
+				/* 	break; */
+				/* case XCB_FOCUS_IN: */
+				/* 	focus_in(event); */
+				/* 	break; */
 
-		default:
-			/* Unknown event type, ignore it */
-			fprintf(stderr, "Unknown event: %d\n",
-			        event->response_type);
+			default:
+				/* Unknown event type, ignore it */
+				poco_log_debug("Unknown event: %d\n", event->response_type);
+			}
+			free(event);
+			xcb_flush(xcb->conn);
 		}
-		free(event);
-		xcb_flush(xcb->conn);
 	}
 }
 
-void __poco_ws_init(struct poco_ws *ws /* OUT */)
+struct poco_ws * __poco_ws_init()
 {
-	ws = __poco_ws_new();
+	struct poco_ws *ws = __poco_ws_new();
 
 	struct poco_xcb *xcb = xcb = malloc(sizeof(struct poco_xcb));
-
-	set_platformdata(ws, xcb);
 
 	xcb->conn = xcb_connect(NULL, &xcb->screen);
 
 	if (xcb_connection_has_error(xcb->conn))
-		fprintf(stderr, "Can't open the default X display.\n");
+		poco_log_fatal("Can't open the default X display.\n");
 
 	/* initialize EWMH atoms */
 	xcb->ewmh = malloc(sizeof(xcb_ewmh_connection_t));
 	xcb_intern_atom_cookie_t * cookie = xcb_ewmh_init_atoms(xcb->conn, xcb->ewmh);
 	if (xcb_ewmh_init_atoms_replies(xcb->ewmh, cookie, NULL) == 0)
-		fprintf(stderr, "Can't initialize EWMH atoms.\n");
+		poco_log_fatal("Can't initialize EWMH atoms.\n");
 
 	/* get screen information */
-	/* xcb_screen_t *screen = xcb_setup_roots_iterator(xcb_get_setup(xcb->conn)).data; */
-	xcb_screen_t *screen = xcb_aux_get_screen(xcb->conn, xcb->default_screen);
-	if (!xcb->screen)
-		fprintf(stderr, "Can't acquire the default screen.\n");
+	xcb_screen_t *screen = xcb_aux_get_screen(xcb->conn, xcb->screen);
+	if (!screen)
+		poco_log_fatal("Can't acquire the default screen.\n");
 	ws->screen.width = screen->width_in_pixels;
 	ws->screen.height = screen->height_in_pixels;
 	xcb->root = screen->root;
@@ -193,12 +192,18 @@ void __poco_ws_init(struct poco_ws *ws /* OUT */)
 
 	/* Register for some root window events */
 	/* This is the type of value that should be nice to have from the platformdata code */
-	const static uint32_t values[] = { XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY |
-	                                   XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT };
+	const static uint32_t values[] = { XCB_EVENT_MASK_STRUCTURE_NOTIFY |
+	                                   XCB_EVENT_MASK_SUBSTRUCTURE_NOTIFY |
+	                                   XCB_EVENT_MASK_SUBSTRUCTURE_REDIRECT |
+	                                   XCB_EVENT_MASK_PROPERTY_CHANGE };
 	xcb_change_window_attributes(xcb->conn, xcb->root, XCB_CW_EVENT_MASK, values);
 
 	/* Register event loop */
 	ws->event_loop = event_loop;
+
+	set_platformdata(ws, xcb);
+
+	return ws;
 }
 
 void __poco_ws_cleanup(struct poco_ws *ws)

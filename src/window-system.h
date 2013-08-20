@@ -37,7 +37,7 @@ void __poco_ws_free(struct poco_ws *ws);
 
 /* the following are implementation specific */
 
-void __poco_ws_init(struct poco_ws *ws /* OUT */);
+struct poco_ws * __poco_ws_init();
 
 void __poco_ws_cleanup(struct poco_ws *ws);
 
