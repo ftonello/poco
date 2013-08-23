@@ -3,15 +3,18 @@
 #include <assert.h>
 #include <malloc.h>
 
-poco_rb_tree * poco_rbtree_new(bool (*less)(const void* lhs, const void* rhs),
+poco_rb_tree * poco_rbtree_new(bool (*compare)(const void* lhs, const void* rhs),
                                void (*clear)(const void* private))
 {
 	struct poco_rb_tree *rb;
+
+	assert(compare);
+
 	if (!(rb = calloc(1, sizeof(struct poco_rb_tree))))
 		return NULL;
 
-	rb->less = less;
-	rb->clear = clear;
+	rb->compare = compare;
+	rb->clear = clear; /* can be NULL */
 
 	if (!(rb->root = calloc(1, sizeof(struct poco_rb_node))))
 		goto err;
@@ -35,7 +38,8 @@ void poco_rbtree_free(poco_rb_tree *rb)
 	assert(rb);
 
 	POCO_RBTREE_FOREACH(node, rb) {
-		rb->clear(node->private);
+		if (rb->clear)
+			rb->clear(node->private);
 		free(node);
 	}
 
@@ -88,20 +92,17 @@ void rbtree_left_rotate(struct poco_rb_tree *rb, struct poco_rb_node *node)
 void poco_rbtree_insert(struct poco_rb_tree *rb, struct poco_rb_node *node)
 {
 	struct poco_rb_node *y = NULL;
-	struct poco_rb_node *x = rb->root;
+	struct poco_rb_node *x;
 
 	assert(rb);
+	assert(rb->root);
 
-	/* in case is our first node to be inserted */
-	if (!rb->root) {
-		rb->root = node;
-		return;
-	}
+	x = rb->root;
 
 	/* normal BST insert */
 	while (x) {
 		y = x;
-		if (rb->less(node->private, x->private)) {
+		if (rb->compare(node->private, x->private)) {
 			if (!x->left)
 				x->left = node;
 			x = x->left;
