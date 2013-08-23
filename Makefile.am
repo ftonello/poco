@@ -10,7 +10,9 @@ poco_SOURCES = \
 	src/platformdata.c \
 	src/platformdata.h \
 	src/window-system.c \
-	src/window-system.h
+	src/window-system.h \
+	src/rb-tree.c \
+	src/rb-tree.h
 
 AM_CFLAGS = \
 	-I$(top_srcdir)/src

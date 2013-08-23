@@ -19,14 +19,14 @@ struct poco_geometry {
 
 struct poco_ws {
 	/* xcb or wayland */
-	void *platformdata;
+	void *platform_data;
 	struct poco_geometry screen;
 	void (*event_loop)(struct poco_ws *);
 };
 
 struct poco_window {
 	struct poco_geometry geo;
-	void *platformdata;
+	void *private;
 	bool (*minimize)();
 	bool (*unminimize)();
 };
@@ -37,7 +37,7 @@ void __poco_ws_free(struct poco_ws *ws);
 
 /* the following are implementation specific */
 
-struct poco_ws * __poco_ws_init();
+void __poco_ws_init(struct poco_ws **ws);
 
 void __poco_ws_cleanup(struct poco_ws *ws);
 

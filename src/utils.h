@@ -8,6 +8,9 @@
 #define	poco_log_debug(...)	          \
 		fprintf(stdout, __VA_ARGS__)
 
+#define	poco_log_warning(...)         \
+		fprintf(stderr, __VA_ARGS__)
+
 #define	poco_log_fatal(...)	          \
 	do {                              \
 		fprintf(stderr, __VA_ARGS__); \
