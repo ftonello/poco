@@ -9,8 +9,6 @@
 #include <xcb/xcb_aux.h>
 #include <xcb/xcb_event.h>
 
-#define	LENGTH(x)	(sizeof(x) / sizeof(*x))
-
 inline struct poco_xcb * get_platformdata(struct poco_ws *ws)
 {
 	return (struct poco_xcb *)ws->platform_data;
@@ -101,18 +99,16 @@ static void event_loop(struct poco_ws *ws)
 			free(event);
 			xcb_flush(xcb->conn);
 		}
-		/* TODO: exit gracefully */
-		if (xcb_connection_has_error(xcb->conn))
-			poco_log_fatal("The server has closed the connection.\n");
+
+		if (xcb_connection_has_error(xcb->conn)) {
+			poco_log_warning("The server has closed the connection.\n");
+			break;
+		}
 	}
 }
 
-/* struct poco_ws * __poco_ws_init() */
-void __poco_ws_init(struct poco_ws **ws)
+void __poco_ws_platform_init(struct poco_ws *ws)
 {
-	*ws = __poco_ws_new();
-
-	struct poco_ws *local_ws = *ws;
 
 	struct poco_xcb *xcb = xcb = malloc(sizeof(struct poco_xcb));
 
@@ -131,8 +127,8 @@ void __poco_ws_init(struct poco_ws **ws)
 	xcb_screen_t *screen = xcb_aux_get_screen(xcb->conn, xcb->screen);
 	if (!screen)
 		poco_log_fatal("Can't acquire the default screen.\n");
-	local_ws->screen.width = screen->width_in_pixels;
-	local_ws->screen.height = screen->height_in_pixels;
+	ws->screen.width = screen->width_in_pixels;
+	ws->screen.height = screen->height_in_pixels;
 	xcb->root = screen->root;
 	xcb->root_depth = screen->root_depth;
 
@@ -140,7 +136,7 @@ void __poco_ws_init(struct poco_ws **ws)
 	xcb->us = xcb_generate_id(xcb->conn);
 	xcb_create_window(xcb->conn, XCB_COPY_FROM_PARENT,
 	                  xcb->us, xcb->root, 0, 0,
-	                  local_ws->screen.width, local_ws->screen.height,
+	                  ws->screen.width, ws->screen.height,
 	                  0, XCB_WINDOW_CLASS_INPUT_ONLY, XCB_COPY_FROM_PARENT,
 	                  0, 0);
 
@@ -176,7 +172,7 @@ void __poco_ws_init(struct poco_ws **ws)
 	                           xcb->ewmh->_NET_WM_WINDOW_TYPE_UTILITY,
 	                           xcb->ewmh->_NET_WM_WINDOW_TYPE_TOOLBAR };
 
-	xcb_ewmh_set_supported(xcb->ewmh, xcb->screen, LENGTH(net_atoms), net_atoms);
+	xcb_ewmh_set_supported(xcb->ewmh, xcb->screen, ARRAY_LENGTH(net_atoms), net_atoms);
 
 	/* Send hints */
 	xcb_ewmh_set_active_window(xcb->ewmh, xcb->screen, XCB_WINDOW_NONE);
@@ -184,15 +180,15 @@ void __poco_ws_init(struct poco_ws **ws)
 	xcb_ewmh_set_supporting_wm_check(xcb->ewmh, xcb->root, xcb->us);
 
 	xcb_ewmh_set_desktop_geometry(xcb->ewmh, xcb->screen,
-	                              local_ws->screen.width,
-	                              local_ws->screen.height);
+	                              ws->screen.width,
+	                              ws->screen.height);
 
 	xcb_ewmh_coordinates_t coord = { 0, 0 };
 	xcb_ewmh_set_desktop_viewport(xcb->ewmh, xcb->screen, 1, &coord);
 
 	xcb_ewmh_geometry_t geo = { 0, 0,
-	                            local_ws->screen.width,
-	                            local_ws->screen.height };
+	                            ws->screen.width,
+	                            ws->screen.height };
 	xcb_ewmh_set_workarea(xcb->ewmh, xcb->screen, 1, &geo);
 
 	xcb_ewmh_set_number_of_desktops(xcb->ewmh, xcb->screen, 1);
@@ -211,12 +207,12 @@ void __poco_ws_init(struct poco_ws **ws)
 	xcb_flush(xcb->conn);
 
 	/* Register event loop */
-	local_ws->event_loop = event_loop;
+	ws->event_loop = event_loop;
 
-	set_platformdata(local_ws, xcb);
+	set_platformdata(ws, xcb);
 }
 
-void __poco_ws_cleanup(struct poco_ws *ws)
+void __poco_ws_platform_cleanup(struct poco_ws *ws)
 {
 	struct poco_xcb *xcb = get_platformdata(ws);
 
@@ -232,6 +228,4 @@ void __poco_ws_cleanup(struct poco_ws *ws)
 	xcb_disconnect(xcb->conn);
 
 	free(xcb);
-
-	__poco_ws_free(ws);
 }

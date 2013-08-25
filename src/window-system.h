@@ -31,14 +31,11 @@ struct poco_window {
 	bool (*unminimize)();
 };
 
-struct poco_ws * __poco_ws_new();
-
-void __poco_ws_free(struct poco_ws *ws);
-
-/* the following are implementation specific */
-
 void __poco_ws_init(struct poco_ws **ws);
-
 void __poco_ws_cleanup(struct poco_ws *ws);
+
+/* the following are platform implementation specific */
+void __poco_ws_platform_init(struct poco_ws *ws);
+void __poco_ws_platform_cleanup(struct poco_ws *ws);
 
 #endif /* _WINDOW_SYSTEM_H_ */

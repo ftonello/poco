@@ -11,6 +11,8 @@ poco_SOURCES = \
 	src/platformdata.h \
 	src/window-system.c \
 	src/window-system.h \
+	src/window-stack.c \
+	src/window-stack.h \
 	src/rb-tree.c \
 	src/rb-tree.h
 
@@ -31,6 +33,15 @@ if HAVE_WAYLAND
 poco_SOURCES += \
 	src/window-systems/wayland/wayland.c \
 	src/window-systems/wayland/wayland.h
+endif
+
+if HAVE_TESTS
+TESTS = check_rbtree
+check_PROGRAMS = check_rbtree
+
+check_rbtree_SOURCES = src/tests/rb-tree-test.c src/rb-tree.c
+check_rbtree_CFLAGS = $(LIBCHECK_CFLAGS) $(AM_CFLAGS)
+check_rbtree_LDADD = $(LIBCHECK_LIBS)
 endif
 
 poco_LDADD = $(AM_LDADD)

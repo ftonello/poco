@@ -6,8 +6,9 @@
 
 int main(int argc, char *argv[])
 {
-	/* struct poco_ws *ws = __poco_ws_init(); */
+	/* poco_ws shouldnt be the main struct */
 	struct poco_ws *ws = NULL;
+
 	__poco_ws_init(&ws);
 
 	__poco_load_platformdata(ws);
