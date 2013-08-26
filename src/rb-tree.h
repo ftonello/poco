@@ -2,6 +2,7 @@
 #define _RB_TREE_H_
 
 #include <stdbool.h>
+#include <stddef.h>
 
 struct poco_rb_node {
 	struct poco_rb_node *parent;
@@ -16,6 +17,7 @@ struct poco_rb_tree {
 	void (*clear)(const void* private);
 	struct poco_rb_node *root;
 	struct poco_rb_node *nil;
+	size_t count;
 };
 
 struct poco_rb_tree * poco_rbtree_new(bool (*compare)(const void* lhs, const void* rhs),
